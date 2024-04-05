@@ -23,7 +23,7 @@ jobs:
 
     - name: Run go binary
       env:
-        TOKEN: "${{ secrets.TOKEN }}"
+        CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
         DOMAIN: ${{ secrets.DOMAIN }}
         NAMES: ${{ secrets.NAMES }}
-      run: chmod +x dns && ./dns --token $TOKEN --domain $DOMAIN --names $NAMES
+      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --domain $DOMAIN --names $NAMES
