@@ -1,0 +1,29 @@
+name: Update DNS Records
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  run:
+    name: Run
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source codes
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21' # 使用最接近你生产环境中 Go 版本的版本
+
+    - name: Build go binary
+      run: go build -o dns
+
+    - name: Run go binary
+      env:
+        TOKEN: "${{ secrets.TOKEN }}"
+        DOMAIN: ${{ secrets.DOMAIN }}
+        NAMES: ${{ secrets.NAMES }}
+      run: chmod +x dns && ./dns --token $TOKEN --domain $DOMAIN --names $NAMES
