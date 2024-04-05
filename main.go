@@ -36,7 +36,7 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:        "domain",
-				Value:       "lmkcc.site",
+				Value:       "example.com",
 				Usage:       "Domain for the DNS record update",
 				Destination: &domain,
 			},
