@@ -67,15 +67,23 @@ func main() {
 				return fmt.Errorf("Error fetching IP address:", err)
 			}
 
+			// 延迟 超过 150ms 的 IP 地址不予考虑
+			var validIPs []IPInfo
+			for _, ip := range ips {
+				if ip.Delay < 150 {
+					validIPs = append(validIPs, ip)
+				}
+			}
+
 			// 排序 IP 地址列表基于延迟
-			sort.Slice(ips, func(i, j int) bool {
-				return ips[i].Delay < ips[j].Delay
+			sort.Slice(validIPs, func(i, j int) bool {
+				return validIPs[i].Delay < validIPs[j].Delay
 			})
 
 			// 选取延迟最低的前n个地址
-			topIPs := ips
-			if len(ips) > len(domainNames) {
-				topIPs = ips[:len(domainNames)]
+			topIPs := validIPs
+			if len(validIPs) > len(domainNames) {
+				topIPs = validIPs[:len(domainNames)]
 			}
 
 			_, err = resolveIPtoDomain(c.Context, api, domain, domainNames, topIPs)
