@@ -40,14 +40,16 @@ func main() {
 				Destination: &cloudflareURL,
 			},
 			&cli.StringFlag{
-				Name:  "cf-domain",
-				Value: "example.com",
-				Usage: "Domain for the DNS record update",
+				Name:        "cf-domain",
+				Value:       "example.com",
+				Usage:       "Domain for the DNS record update",
+				Destination: &cloudflareDomain,
 			},
 			&cli.StringFlag{
-				Name:  "cf-names",
-				Usage: "The subdomain names to update, use this flag multiple times for multiple names",
-				Value: "cf1,cf2,cf3,cf4,cf5",
+				Name:        "cf-names",
+				Usage:       "The subdomain names to update, use this flag multiple times for multiple names",
+				Value:       "cf1,cf2,cf3,cf4,cf5",
+				Destination: &cloudflareNames,
 			},
 			&cli.StringFlag{
 				Name:        "gcore-url",
@@ -74,9 +76,10 @@ func main() {
 				EnvVars:     []string{"CLOUDFLARE_API_TOKEN"}, // Alternatively read from environment variable
 			},
 			&cli.IntFlag{
-				Name:  "max-delay",
-				Usage: "Maximum delay in milliseconds",
-				Value: 150,
+				Name:        "max-delay",
+				Usage:       "Maximum delay in milliseconds",
+				Value:       150,
+				Destination: &maxDeplay,
 			},
 		},
 		Action: func(c *cli.Context) error {
