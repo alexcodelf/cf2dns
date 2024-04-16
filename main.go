@@ -19,38 +19,64 @@ import (
 // 定义结构体和之前的逻辑相同...
 
 func main() {
-	var fastUrl string
-	var domain string
-	var names string
+	var gcoreURL string
+	var gcoreDomain string
+	var gcoreNames string
 	var apiToken string
 
+	var cloudflareURL string
+	var cloudflareDomain string
+	var cloudflareNames string
+
+	var maxDeplay int
 	app := &cli.App{
 		Name:  "Update Cloudflare DNS",
 		Usage: "Updates the DNS records for given domain and subdomains with lowest latency IPs using Cloudflare API.",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:        "url",
-				Value:       "https://monitor.gacjie.cn/api/client/get_ip_address?cdn_server=3",
-				Usage:       "Domain for the DNS record update",
-				Destination: &fastUrl,
+				Name:        "cf-url",
+				Value:       "https://monitor.gacjie.cn/api/client/get_ip_address?cdn_server=1",
+				Usage:       "URL for the Cloudflare API",
+				Destination: &cloudflareURL,
 			},
 			&cli.StringFlag{
-				Name:        "domain",
+				Name:  "cf-domain",
+				Value: "example.com",
+				Usage: "Domain for the DNS record update",
+			},
+			&cli.StringFlag{
+				Name:  "cf-names",
+				Usage: "The subdomain names to update, use this flag multiple times for multiple names",
+				Value: "cf1,cf2,cf3,cf4,cf5",
+			},
+			&cli.StringFlag{
+				Name:        "gcore-url",
+				Value:       "https://monitor.gacjie.cn/api/client/get_ip_address?cdn_server=3",
+				Usage:       "Domain for the gcore API",
+				Destination: &gcoreURL,
+			},
+			&cli.StringFlag{
+				Name:        "gcore-domain",
 				Value:       "example.com",
 				Usage:       "Domain for the DNS record update",
-				Destination: &domain,
+				Destination: &gcoreDomain,
 			},
 			&cli.StringFlag{
-				Name:        "names",
+				Name:        "gcore-names",
 				Usage:       "The subdomain names to update, use this flag multiple times for multiple names",
 				Value:       "cdn1,cdn2,cdn3,cdn4,cdn5",
-				Destination: &names,
+				Destination: &gcoreNames,
 			},
 			&cli.StringFlag{
 				Name:        "cloudflare-api-token",
 				Usage:       "Cloudflare API token",
 				Destination: &apiToken,
 				EnvVars:     []string{"CLOUDFLARE_API_TOKEN"}, // Alternatively read from environment variable
+			},
+			&cli.IntFlag{
+				Name:  "max-delay",
+				Usage: "Maximum delay in milliseconds",
+				Value: 150,
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -59,35 +85,15 @@ func main() {
 				return err
 			}
 
-			domainNames := strings.Split(names, ",")
+			gcoreDomains := strings.Split(gcoreNames, ",")
 
-			// 获取 IP 地址列表
-			ips, err := fetchIPAddresses(fastUrl)
-			if err != nil {
-				return fmt.Errorf("Error fetching IP address:", err)
+			cloudflareDomains := strings.Split(cloudflareNames, ",")
+
+			if err := updateDomains(c.Context, api, cloudflareURL, cloudflareDomain, cloudflareDomains, maxDeplay); err != nil {
+				return err
 			}
 
-			// 延迟 超过 150ms 的 IP 地址不予考虑
-			var validIPs []IPInfo
-			for _, ip := range ips {
-				if ip.Delay < 150 {
-					validIPs = append(validIPs, ip)
-				}
-			}
-
-			// 排序 IP 地址列表基于延迟
-			sort.Slice(validIPs, func(i, j int) bool {
-				return validIPs[i].Delay < validIPs[j].Delay
-			})
-
-			// 选取延迟最低的前n个地址
-			topIPs := validIPs
-			if len(validIPs) > len(domainNames) {
-				topIPs = validIPs[:len(domainNames)]
-			}
-
-			_, err = resolveIPtoDomain(c.Context, api, domain, domainNames, topIPs)
-			if err != nil {
+			if err := updateDomains(c.Context, api, gcoreURL, gcoreDomain, gcoreDomains, maxDeplay); err != nil {
 				return err
 			}
 
@@ -99,6 +105,40 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func updateDomains(ctx context.Context, cfAPI *cloudflare.API, apiURL string, domain string, domainNames []string, maxDeplay int) error {
+	// 获取 gcore IP 地址列表
+	IPs, err := fetchIPAddresses(apiURL)
+	if err != nil {
+		return fmt.Errorf("Error fetching IP address: %v", err)
+	}
+
+	// 延迟 超过 150ms 的 IP 地址不予考虑
+	var validIPs []IPInfo
+	for _, ip := range IPs {
+		if ip.Delay < maxDeplay {
+			validIPs = append(validIPs, ip)
+		}
+	}
+
+	// 排序 IP 地址列表基于延迟
+	sort.Slice(validIPs, func(i, j int) bool {
+		return validIPs[i].Delay < validIPs[j].Delay
+	})
+
+	// 选取延迟最低的前n个地址
+	topIPs := validIPs
+	if len(validIPs) > len(domainNames) {
+		topIPs = validIPs[:len(domainNames)]
+	}
+
+	_, err = resolveIPtoDomain(ctx, cfAPI, domain, domainNames, topIPs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // resolveIPtoDomain 使用 cloudflare API 将 IP 解析到域名

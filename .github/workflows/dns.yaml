@@ -26,4 +26,4 @@ jobs:
         CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
         DOMAIN: ${{ secrets.DOMAIN }}
         NAMES: ${{ vars.NAMES }}
-      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --domain $DOMAIN --names $NAMES
+      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --gcore-url=$GCORE_URL --gcore-domain $GCORE_DOMAIN --gcore-names $GCORE_NAMES --cf-domain $CF_DOMAIN --cf-names $CF_NAMES --cf-url=$CF_URL
