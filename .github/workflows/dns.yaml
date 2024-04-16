@@ -30,4 +30,5 @@ jobs:
         CF_URL: ${{ secrets.CF_URL }}
         CF_DOMAIN: ${{ secrets.CF_DOMAIN }}
         CF_NAMES: ${{ vars.CF_NAMES }}
-      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --gcore-url=$GCORE_URL --gcore-domain $GCORE_DOMAIN --gcore-names $GCORE_NAMES --cf-domain $CF_DOMAIN --cf-names $CF_NAMES --cf-url=$CF_URL
+        MAX_DELAY: ${{ vars.MAX_DELAY }}
+      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --gcore-url=$GCORE_URL --gcore-domain $GCORE_DOMAIN --gcore-names $GCORE_NAMES --cf-domain $CF_DOMAIN --cf-names $CF_NAMES --cf-url=$CF_URL --max-delay $MAX_DELAY
