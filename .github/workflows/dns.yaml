@@ -1,34 +1,56 @@
-name: Update DNS Records
+name: CI/CD
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   schedule:
     - cron: "0 */2 * * *"
 
 jobs:
-  run:
-    name: Run
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout source codes
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v3
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v4
       with:
-        go-version: '1.21' # 使用最接近你生产环境中 Go 版本的版本
+        go-version: '1.21'
+    - name: Test
+      run: go test -v ./...
 
-    - name: Build go binary
-      run: go build -o dns
-
-    - name: Run go binary
-      env:
-        CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-        GCORE_URL: ${{ secrets.GCORE_URL }}
-        GCORE_DOMAIN: ${{ secrets.GCORE_DOMAIN }}
-        GCORE_NAMES: ${{ vars.GCORE_NAMES }}
-        CF_URL: ${{ secrets.CF_URL }}
-        CF_DOMAIN: ${{ secrets.CF_DOMAIN }}
-        CF_NAMES: ${{ vars.CF_NAMES }}
-        MAX_DELAY: ${{ vars.MAX_DELAY }}
-      run: chmod +x dns && ./dns --cloudflare-api-token $CLOUDFLARE_API_TOKEN --gcore-url=$GCORE_URL --gcore-domain $GCORE_DOMAIN --gcore-names $GCORE_NAMES --cf-domain $CF_DOMAIN --cf-names $CF_NAMES --cf-url=$CF_URL --max-delay $MAX_DELAY
+  build:
+    name: Build and Run
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    - name: Build
+      run: go build -v -o cf2dns cmd/main.go
+    - name: Create config file
+      run: |
+        cat > config.yaml <<EOF
+        cf_url: "${{ secrets.CF_URL }}"
+        cf_domain: "${{ secrets.CF_DOMAIN }}"
+        cf_names: ${{ secrets.CF_NAMES }}
+        gcore_url: "${{ secrets.GCORE_URL }}"
+        gcore_domain: "${{ secrets.GCORE_DOMAIN }}"
+        gcore_names: ${{ secrets.GCORE_NAMES }}
+        cloudflare_api_token: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+        max_delay: ${{ secrets.MAX_DELAY }}
+        EOF
+    - name: Run DNS updater
+      run: ./cf2dns
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: cf2dns-logs
+        path: '*.log'
+        retention-days: 7
