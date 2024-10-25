@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/cloudflare/cloudflare-go"
@@ -33,8 +34,7 @@ func (p *CloudflareProvider) UpdateRecord(ctx context.Context, record UpdateReco
 		}
 
 		ip := record.IPs[i]
-
-		name = strings.TrimSuffix(name, "."+record.Domain)
+		name = strings.TrimSpace(name) + "." + strings.TrimSpace(record.Domain)
 
 		records, _, err := p.api.ListDNSRecords(ctx, cloudflare.ZoneIdentifier(zoneID), cloudflare.ListDNSRecordsParams{Name: name})
 		if err != nil {
@@ -54,8 +54,9 @@ func (p *CloudflareProvider) UpdateRecord(ctx context.Context, record UpdateReco
 			continue // Skip the update, since the record was just created
 		}
 
+		recordID := records[0].ID
 		_, err = p.api.UpdateDNSRecord(ctx, cloudflare.ZoneIdentifier(zoneID), cloudflare.UpdateDNSRecordParams{
-			ID:      records[0].ID,
+			ID:      recordID,
 			Type:    "A",
 			Name:    name,
 			Content: ip,
@@ -63,8 +64,10 @@ func (p *CloudflareProvider) UpdateRecord(ctx context.Context, record UpdateReco
 			Proxied: cloudflare.BoolPtr(false),
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("更新 Cloudflare 记录失败: %w, 域名: %s, 子域名: %s, IP: %s", err, record.Domain, name, ip)
 		}
+
+		p.log.Info("更新 Cloudflare 记录成功", zap.String("domain", record.Domain), zap.String("name", name), zap.String("ip", ip))
 	}
 
 	return nil

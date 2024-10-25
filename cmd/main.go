@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	cfFetcherName = "cloudflare"
+	cfFetcherName    = "cloudflare"
 	gcoreFetcherName = "gcore"
 )
 
@@ -52,8 +52,8 @@ func main() {
 	cfProvider := provider.NewCloudflareProvider(cfg.CloudflareAPIToken, logger)
 
 	fetchers := map[string]*fetcher.Fetcher{
-		cfFetcherName:    fetcher.NewFetcher(cfg.CFURL, cfg.CFDomain, cfg.CFNames, logger),
-		gcoreFetcherName: fetcher.NewFetcher(cfg.GcoreURL, cfg.GcoreDomain, cfg.GcoreNames, logger),
+		gcoreFetcherName: fetcher.NewFetcher(cfg.Gcore, logger),
+		cfFetcherName:    fetcher.NewFetcher(cfg.Cloudflare, logger),
 	}
 
 	if err := updateDNS(ctx, cfProvider, fetchers); err != nil {
@@ -87,7 +87,7 @@ func updateDNS(ctx context.Context, p provider.Provider, fetchers map[string]*fe
 		record := provider.UpdateRecord{
 			Domain: fetcher.Domain,
 			Names:  fetcher.Names,
-			IPs:     ips,
+			IPs:    ips,
 		}
 
 		if err := p.UpdateRecord(ctx, record); err != nil {

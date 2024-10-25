@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/alexcodelf/cf2dns/pkg/config"
 	"go.uber.org/zap"
 )
 
@@ -35,11 +36,11 @@ type Fetcher struct {
 	logger *zap.Logger
 }
 
-func NewFetcher(url, domain string, names []string, log *zap.Logger) *Fetcher {
+func NewFetcher(pc config.PriorityConfig, log *zap.Logger) *Fetcher {
 	return &Fetcher{
-		URL:    url,
-		Domain: domain,
-		Names:  names,
+		URL:    pc.URL,
+		Domain: pc.Domain,
+		Names:  pc.Names,
 		logger: log,
 	}
 }
@@ -86,8 +87,7 @@ func (f *Fetcher) GetSortedIPs(ctx context.Context) ([]IPInfo, error) {
 	}
 
 	// group by line name
-
-	 groupedIPs := make(map[string][]IPInfo)
+	groupedIPs := make(map[string][]IPInfo)
 
 	for _, ip := range ips {
 		if _, ok := groupedIPs[ip.LineName]; !ok {
@@ -96,7 +96,6 @@ func (f *Fetcher) GetSortedIPs(ctx context.Context) ([]IPInfo, error) {
 
 		groupedIPs[ip.LineName] = append(groupedIPs[ip.LineName], ip)
 	}
-
 
 	// sort grouped IPs by delay
 	for _, ips := range groupedIPs {
@@ -107,12 +106,15 @@ func (f *Fetcher) GetSortedIPs(ctx context.Context) ([]IPInfo, error) {
 
 	var allIPs []IPInfo
 
-	for _, ips := range groupedIPs {
-		// get the first 2 IPs, if there are less than 2, get all of them
-		if len(ips) < 2 {
-			allIPs = append(allIPs, ips...)
-		} else {
-			allIPs = append(allIPs, ips[:2]...)
+	// 获取每个线路的第一个 IP, 取出的 IP 从 groupedIPs 中删除，直到 groupedIPs 为空
+	for len(groupedIPs) > 0 {
+		for group, ips := range groupedIPs {
+			allIPs = append(allIPs, ips[0])
+			if len(ips) > 1 {
+				groupedIPs[group] = ips[1:]
+			} else {
+				delete(groupedIPs, group)
+			}
 		}
 	}
 
