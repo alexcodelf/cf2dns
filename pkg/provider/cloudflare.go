@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/cloudflare/cloudflare-go"
@@ -66,7 +65,8 @@ func (p *CloudflareProvider) UpdateRecord(ctx context.Context, record UpdateReco
 			Proxied: cloudflare.BoolPtr(false),
 		})
 		if err != nil {
-			return fmt.Errorf("更新 Cloudflare 记录失败: %w, 域名: %s, 子域名: %s, IP: %s", err, record.Domain, name, ip)
+			p.log.Warn("更新 Cloudflare 记录失败", zap.String("domain", record.Domain), zap.String("name", name), zap.String("ip", ip), zap.Error(err))
+			continue
 		}
 
 		p.log.Info("更新 Cloudflare 记录成功", zap.String("domain", record.Domain), zap.String("name", name), zap.String("ip", ip))
