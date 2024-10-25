@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */12 * * *"
 
 jobs:
   test:
@@ -36,14 +36,15 @@ jobs:
     - name: Create config file
       run: |
         cat > config.yaml <<EOF
-        cf_url: "${{ secrets.CF_URL }}"
-        cf_domain: "${{ secrets.CF_DOMAIN }}"
-        cf_names: ${{ secrets.CF_NAMES }}
-        gcore_url: "${{ secrets.GCORE_URL }}"
-        gcore_domain: "${{ secrets.GCORE_DOMAIN }}"
-        gcore_names: ${{ secrets.GCORE_NAMES }}
-        cloudflare_api_token: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-        max_delay: ${{ secrets.MAX_DELAY }}
+        cloudflare:
+          url: "${{ secrets.CLOUDFLARE_URL }}"
+          domain: "${{ secrets.CLOUDFLARE_DOMAIN }}"
+          names: ${{ secrets.CLOUDFLARE_NAMES }}
+        gcore:
+          url: "${{ secrets.GCORE_URL }}"
+          domain: "${{ secrets.GCORE_DOMAIN }}"
+          names: ${{ secrets.GCORE_NAMES }}
+        maxDelay: ${{ secrets.MAX_DELAY }}
         EOF
     - name: Run DNS updater
       run: ./cf2dns
