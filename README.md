@@ -44,11 +44,11 @@ go run ./cmd/main.go
 
 ### github actions 使用
 
-默认情况下，会每12小时更新一次，在项目的 settings->actions->secrets 中添加以下变量:
+默认情况下，会每12小时更新一次，在项目的 settings->secrets and variables -> actions 中添加以下变量:
 
-- `CF_URL`: Cloudflare API 的 URL
-- `CF_DOMAIN`: 需要解析优选 Cloudflare IP 的域名， 如 dev.yourdomain.com
-- `CF_NAMES`: 需要解析优选 Cloudflare 的子域名列表，以逗号分隔， 如 cf1,cf2,cf3
+- `CLOUDFLARE_URL`: Cloudflare API 的 URL
+- `CLOUDFLARE_DOMAIN`: 需要解析优选 Cloudflare IP 的域名， 如 dev.yourdomain.com
+- `CLOUDFLARE_NAMES`: 需要解析优选 Cloudflare 的子域名列表，以逗号分隔， 如 cf1,cf2,cf3
 - `CLOUDFLARE_API_TOKEN`: Cloudflare API 的 token
 - `GCORE_URL`: GCore API 的 URL
 - `GCORE_DOMAIN`: 需要解析优选 GCore IP 的域名
