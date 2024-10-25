@@ -30,7 +30,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.23'
     - name: Build
       run: go build -v -o cf2dns cmd/main.go
     - name: Create config file
@@ -45,6 +45,7 @@ jobs:
           domain: "${{ secrets.GCORE_DOMAIN }}"
           names: ${{ secrets.GCORE_NAMES }}
         maxDelay: ${{ secrets.MAX_DELAY }}
+        cloudflareApiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         EOF
     - name: Run DNS updater
       run: ./cf2dns
