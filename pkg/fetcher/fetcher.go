@@ -45,7 +45,7 @@ func NewFetcher(pc config.PriorityConfig, log *zap.Logger) *Fetcher {
 	}
 }
 
-func (f *Fetcher) FetchIPs(ctx context.Context) ([]IPInfo, error) {
+func (f *Fetcher) FetchIPs(ctx context.Context, maxDelay int, minBandwidth int) ([]IPInfo, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, f.URL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -76,12 +76,25 @@ func (f *Fetcher) FetchIPs(ctx context.Context) ([]IPInfo, error) {
 		allIPs = append(allIPs, ips...)
 	}
 
-	return allIPs, nil
+	filteredIPs := []IPInfo{}
+	for _, ip := range allIPs {
+		if ip.Delay > maxDelay {
+			continue
+		}
+
+		if ip.Bandwidth < minBandwidth {
+			continue
+		}
+
+		filteredIPs = append(filteredIPs, ip)
+	}
+
+	return filteredIPs, nil
 }
 
 // GetSortedIPs returns the IPs sorted by delay
-func (f *Fetcher) GetSortedIPs(ctx context.Context) ([]IPInfo, error) {
-	ips, err := f.FetchIPs(ctx)
+func (f *Fetcher) GetSortedIPs(ctx context.Context, maxDelay int, minBandwidth int) ([]IPInfo, error) {
+	ips, err := f.FetchIPs(ctx, maxDelay, minBandwidth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch IPs: %w", err)
 	}

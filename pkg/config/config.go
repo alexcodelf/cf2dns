@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -11,7 +10,8 @@ import (
 type Config struct {
 	Cloudflare         PriorityConfig `mapstructure:"cloudflare"`
 	Gcore              PriorityConfig `mapstructure:"gcore"`
-	MaxDelay           time.Duration  `mapstructure:"maxDelay"`
+	MaxDelay           int            `mapstructure:"maxDelay"`
+	MinBandwidth       int            `mapstructure:"minBandwidth"`
 	CloudflareAPIToken string         `mapstructure:"cloudflareApiToken"`
 }
 
@@ -34,7 +34,8 @@ func DefaultConfig() *Config {
 		Gcore: PriorityConfig{
 			URL: "https://www.wetest.vip/api/cf2dns/get_gcore_ip",
 		},
-		MaxDelay: 500 * time.Millisecond,
+		MaxDelay:     250,
+		MinBandwidth: 15,
 	}
 }
 

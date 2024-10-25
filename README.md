@@ -22,8 +22,9 @@ gcore:
   url: https://www.wetest.vip/api/cf2dns/get_gcore_ip
   domain: dev.local
   names: gcore1,gcore2,gcore3
-cloudflareApiToken: yourtoken
-maxDelay: 500
+cloudflareApiToken: yourapitoken
+maxDelay: 250
+minBandwidth: 15
 ```
 
 cloudflareAPI 令牌获取地址: https://dash.cloudflare.com/profile/api-tokens
@@ -53,8 +54,8 @@ go run ./cmd/main.go
 - `GCORE_URL`: GCore API 的 URL
 - `GCORE_DOMAIN`: 需要解析优选 GCore IP 的域名
 - `GCORE_NAMES`: 需要解析优选 GCore IP 的子域名列表
-- `MAX_DELAY`: 最大延迟时间
-
+- `MAX_DELAY`: 最大延迟时间, 默认 250，表示优选 IP 的延迟不超过 250ms
+- `MIN_BANDWIDTH`: 最小带宽, 默认 15，表示优选 IP 的带宽不低于 15Mbps
 
 
 # 注意

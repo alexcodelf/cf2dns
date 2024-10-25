@@ -7,4 +7,5 @@ gcore:
   domain: dev.local
   names: gcore1,gcore2,gcore3
 cloudflareApiToken: yourapitoken
-maxDelay: 500
+maxDelay: 250
+minBandwidth: 15

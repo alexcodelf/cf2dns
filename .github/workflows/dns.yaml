@@ -45,6 +45,7 @@ jobs:
           domain: "${{ secrets.GCORE_DOMAIN }}"
           names: ${{ secrets.GCORE_NAMES }}
         maxDelay: ${{ secrets.MAX_DELAY }}
+        minBandwidth: ${{ secrets.MIN_BANDWIDTH }}
         cloudflareApiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         EOF
     - name: Run DNS updater

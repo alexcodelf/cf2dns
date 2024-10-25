@@ -56,7 +56,7 @@ func main() {
 		cfFetcherName:    fetcher.NewFetcher(cfg.Cloudflare, logger),
 	}
 
-	if err := updateDNS(ctx, cfProvider, fetchers); err != nil {
+	if err := updateDNS(ctx, cfProvider, fetchers, cfg.MaxDelay, cfg.MinBandwidth); err != nil {
 		logger.Error("更新 DNS 失败", zap.Error(err))
 		os.Exit(1)
 	}
@@ -72,7 +72,7 @@ func validateConfig(cfg *config.Config) error {
 	return nil
 }
 
-func updateDNS(ctx context.Context, p provider.Provider, fetchers map[string]*fetcher.Fetcher) error {
+func updateDNS(ctx context.Context, p provider.Provider, fetchers map[string]*fetcher.Fetcher, maxDelay int, minBandwidth int) error {
 	logger := logger.NewLogger()
 	defer logger.Sync()
 
@@ -92,7 +92,7 @@ func updateDNS(ctx context.Context, p provider.Provider, fetchers map[string]*fe
 			continue
 		}
 
-		ipInfos, err := fetcher.GetSortedIPs(ctx)
+		ipInfos, err := fetcher.GetSortedIPs(ctx, maxDelay, minBandwidth)
 		if err != nil {
 			return err
 		}
