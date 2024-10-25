@@ -23,6 +23,8 @@ func NewCloudflareProvider(apiToken string, log *zap.Logger) *CloudflareProvider
 }
 
 func (p *CloudflareProvider) UpdateRecord(ctx context.Context, record UpdateRecord) error {
+	p.log.Info("更新 Cloudflare 记录", zap.String("domain", record.Domain), zap.String("names", strings.Join(record.Names, ",")), zap.String("ips", strings.Join(record.IPs, ",")))
+
 	zoneID, err := p.api.ZoneIDByName(record.Domain)
 	if err != nil {
 		return err

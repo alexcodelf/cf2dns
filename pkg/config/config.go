@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -54,39 +53,5 @@ func Load(configFile string) (*Config, error) {
 		return nil, fmt.Errorf("解析配置失败: %w", err)
 	}
 
-	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("配置无效: %w", err)
-	}
-
 	return cfg, nil
-}
-
-// Validate 验证配置的有效性
-func (c *Config) Validate() error {
-	if err := c.Cloudflare.validate(); err != nil {
-		return fmt.Errorf("cloudflare 配置无效: %w", err)
-	}
-	if err := c.Gcore.validate(); err != nil {
-		return fmt.Errorf("gcore 配置无效: %w", err)
-	}
-	if c.MaxDelay <= 0 {
-		return errors.New("最大延迟必须大于 0")
-	}
-	if c.CloudflareAPIToken == "" {
-		return errors.New("缺少 Cloudflare API 密钥")
-	}
-	return nil
-}
-
-func (cc *PriorityConfig) validate() error {
-	if cc.URL == "" {
-		return errors.New("缺少优选 IP 解析 URL")
-	}
-	if cc.Domain == "" {
-		return errors.New("缺少优选 IP 解析域名")
-	}
-	if len(cc.Names) == 0 {
-		return errors.New("缺少子域名，如cf1,cf2,cf3")
-	}
-	return nil
 }

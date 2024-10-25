@@ -66,14 +66,32 @@ func main() {
 
 func validateConfig(cfg *config.Config) error {
 	if cfg.CloudflareAPIToken == "" {
-		return fmt.Errorf("Cloudflare API 令牌未设置")
+		return fmt.Errorf("cloudflare API 令牌未设置")
 	}
-	// 添加其他必要的配置检查
+
 	return nil
 }
 
 func updateDNS(ctx context.Context, p provider.Provider, fetchers map[string]*fetcher.Fetcher) error {
-	for _, fetcher := range fetchers {
+	logger := logger.NewLogger()
+	defer logger.Sync()
+
+	for t, fetcher := range fetchers {
+		if fetcher.URL == "" {
+			logger.Warn("优选 IP 解析 URL 为空，跳过更新", zap.String("fetcher", t))
+			continue
+		}
+
+		if fetcher.Domain == "" {
+			logger.Warn("优选 IP 解析域名为空，跳过更新", zap.String("fetcher", t))
+			continue
+		}
+
+		if len(fetcher.Names) == 0 {
+			logger.Warn("优选 IP 解析子域名为空，跳过更新", zap.String("fetcher", t))
+			continue
+		}
+
 		ipInfos, err := fetcher.GetSortedIPs(ctx)
 		if err != nil {
 			return err

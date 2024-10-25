@@ -1,0 +1,10 @@
+cloudflare:
+  url: https://www.wetest.vip/api/cf2dns/get_cloudflare_ip
+  domain: dev.local
+  names: cf1,cf2,cf3
+gcore:
+  url: https://www.wetest.vip/api/cf2dns/get_gcore_ip
+  domain: dev.local
+  names: gcore1,gcore2,gcore3
+cloudflareApiToken: yourapitoken
+maxDelay: 500
